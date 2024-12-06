@@ -37,8 +37,7 @@ public class Main {
         System.out.println(results);
       }
     } catch (IOException e) {
-      e.printStackTrace();
-    }
+      e.printStackTrace();    }
   }
 
   private static void calculateAndCompareContiquousGroups(String springLayout) {
