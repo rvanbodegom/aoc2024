@@ -5,86 +5,93 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-  static char operational = '.';
-  static char damaged = '#';
-  static char unknown = '?';
-  static String contiguousGroupsOfDamagedSprings;
+  static char ash = '.';
+  static char rock = '#';
   static int results = 0;
 
   public static void main(String[] args) {
     String filePath = "src/input.txt";
-    List<Integer> intList = new ArrayList<>();
+    List<List<String>> puzzles = new ArrayList<>();
 
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String line;
+      List<String> aPuzzleInput = new ArrayList<>();
       while ((line = br.readLine()) != null) {
-        String[] strings = line.split(" ");
-        String springLayout = strings[0];
-        contiguousGroupsOfDamagedSprings = strings[1];
-        // do the copying for part 2
-        springLayout = springLayout.concat("?").concat(springLayout).concat("?").concat(springLayout).concat("?").concat(springLayout).concat("?").concat(springLayout);
-        contiguousGroupsOfDamagedSprings = contiguousGroupsOfDamagedSprings.concat(",").concat(contiguousGroupsOfDamagedSprings).concat(",").concat(contiguousGroupsOfDamagedSprings).concat(",").concat(contiguousGroupsOfDamagedSprings).concat(",").concat(contiguousGroupsOfDamagedSprings);
+        aPuzzleInput.add(line);
+        if (line.isEmpty()) { // empty line found, so we have a complete puzzle input
+          aPuzzleInput.removeLast();
+          puzzles.add(aPuzzleInput);
+          results += 100 * findHorizontalLine(aPuzzleInput);
+          results += findHorizontalLine(invertMatrix(aPuzzleInput));
+          System.out.println(results);
+          System.out.println(aPuzzleInput);
+          aPuzzleInput = new ArrayList<>();
+        }
+        System.out.println(line);
 
-        // generate the indices within springlayout which are unknown
-        List<Integer> unknownIndices = new ArrayList<>();
-        for (int i = 0; i < springLayout.length(); i++) {
-          if (springLayout.charAt(i) == unknown) {
-            unknownIndices.add(i);
+
+      }
+      puzzles.add(aPuzzleInput);
+//      System.out.println(aPuzzleInput);
+      results += 100 * findHorizontalLine(aPuzzleInput);
+//      System.out.println(aPuzzleInput);
+      results += findHorizontalLine(invertMatrix(aPuzzleInput));
+      System.out.println(results);
+      aPuzzleInput = new ArrayList<>();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  public static List<String> invertMatrix(List<String> input) {
+    int maxLength = input.stream().mapToInt(String::length).max().orElse(0);
+    List<String> inverted = new ArrayList<>();
+
+    for (int i = 0; i < maxLength; i++) {
+      StringBuilder sb = new StringBuilder();
+      for (String s : input) {
+        if (i < s.length()) {
+          sb.append(s.charAt(i));
+        } else {
+          sb.append(' '); // Fill with space if the string is shorter
+        }
+      }
+      inverted.add(sb.toString());
+    }
+
+    return inverted;
+  }
+  public static int findHorizontalLine(List<String> puzzleInput) {
+    int count = 0;
+    for (int i = 0; i < puzzleInput.size(); i++) {
+      if (i + 1 < puzzleInput.size() && puzzleInput.get(i).equals(puzzleInput.get(i + 1))) {
+        System.out.println("found identical rows at " + i + " and " + (i + 1));
+        System.out.println(puzzleInput.get(i));
+        System.out.println(puzzleInput.get(i + 1));
+        int step = 1;
+        boolean mismatch = false;
+        // two identical rows found, now move 'outwards' to see if we have a good reflection.
+        System.out.println("i: " + i + " step: " + step + " puzzleInput.size(): " + puzzleInput.size());
+        while (i - step >= 0 && (i + 1 + step) < puzzleInput.size()) {
+          if (puzzleInput.get(i - step).equals(puzzleInput.get(i + 1 + step))) {
+            System.out.println("found identical rows at " + (i - step) + " and " + (i + 1 + step));
+
+            System.out.println(puzzleInput.get(i-step));
+            System.out.println(puzzleInput.get(i + 1 + step));
+            // we are still good
+            step++;
+          } else {
+            System.out.println("mismatch in rows at " + (i - step) + " and " + (i + 1 + step));
+            System.out.println(puzzleInput.get(i - step));
+            System.out.println(puzzleInput.get(i + 1 + step));
+            mismatch = true;
+            break;
           }
         }
-        // generate all possible permutations of layouts with unknowns replaced by operational or damaged
-        generatePermutations(springLayout, unknownIndices, 0);
-        System.out.println(results);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();    }
-  }
-
-  private static void calculateAndCompareContiquousGroups(String springLayout) {
-    System.out.println(springLayout);
-    if (getDamagedSubstringsLengths(springLayout).equals(contiguousGroupsOfDamagedSprings)) {
-//      System.out.println("Matched");
-      results++;
-    }
-    //System.out.println(contiguousGroupsOfDamagedSprings);
-  }
-  private static String getDamagedSubstringsLengths(String springLayout) {
-    List<Integer> lengths = new ArrayList<>();
-    int count = 0;
-
-    for (int i = 0; i < springLayout.length(); i++) {
-      if (springLayout.charAt(i) == damaged) {
-        count++;
-      } else {
-        if (count > 0) {
-          lengths.add(count);
-          count = 0;
+        if (!mismatch) {
+          return (i + 1); // we have a reflection
         }
       }
     }
-    // Add the last count if the string ends with damaged characters
-    if (count > 0) {
-      lengths.add(count);
-    }
-
-    return lengths.stream()
-        .map(String::valueOf)
-        .reduce((a, b) -> a + "," + b)
-        .orElse("");
-  }
-
-  private static void generatePermutations(String springLayout, List<Integer> unknownIndices, int index) {
-    if (index == unknownIndices.size()) {
-      calculateAndCompareContiquousGroups(springLayout);
-
-      return;
-    }
-
-    StringBuilder sb = new StringBuilder(springLayout);
-    sb.setCharAt(unknownIndices.get(index), operational);
-    generatePermutations(sb.toString(), unknownIndices, index + 1);
-
-    sb.setCharAt(unknownIndices.get(index), damaged);
-    generatePermutations(sb.toString(), unknownIndices, index + 1);
+    return 0;
   }
 }
