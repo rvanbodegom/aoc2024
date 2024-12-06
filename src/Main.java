@@ -2,11 +2,13 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
-  static char ash = '.';
-  static char rock = '#';
+  static char roundedRock = 'O';
+  static char cubeRock = '#';
+  static char empty = '.';
   static int results = 0;
 
   public static void main(String[] args) {
@@ -15,32 +17,55 @@ public class Main {
 
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String line;
-      List<String> aPuzzleInput = new ArrayList<>();
+      List<String> fullPuzzleInput = new ArrayList<>();
+      List<String> shiftedPuzzleInput = new ArrayList<>();
       while ((line = br.readLine()) != null) {
-        aPuzzleInput.add(line);
-        if (line.isEmpty()) { // empty line found, so we have a complete puzzle input
-          aPuzzleInput.removeLast();
-          puzzles.add(aPuzzleInput);
-          results += 100 * findHorizontalLine(aPuzzleInput);
-          results += findHorizontalLine(invertMatrix(aPuzzleInput));
-          System.out.println(results);
-          System.out.println(aPuzzleInput);
-          aPuzzleInput = new ArrayList<>();
+        if (!line.isEmpty()) {
+          fullPuzzleInput.add(line);
+          System.out.println(line);
         }
-        System.out.println(line);
-
-
       }
-      puzzles.add(aPuzzleInput);
-//      System.out.println(aPuzzleInput);
-      results += 100 * findHorizontalLine(aPuzzleInput);
-//      System.out.println(aPuzzleInput);
-      results += findHorizontalLine(invertMatrix(aPuzzleInput));
-      System.out.println(results);
-      aPuzzleInput = new ArrayList<>();
+      //fullPuzzleInput.removeLast(); // remove last empty line
+      fullPuzzleInput = invertMatrix(fullPuzzleInput);
+      // now shift left all roundedRocks until they hit either another roundedRock or a cubeRock
+      for (String singleLine : fullPuzzleInput) {
+        char[] chars = singleLine.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+          if (chars[i] == roundedRock) {
+            int j = i;
+            while (j > 0 && chars[j - 1] == empty) {
+              chars[j - 1] = roundedRock;
+              chars[j] = empty;
+              j--;
+            }
+          }
+        }
+        results += calculateSingleLineWeight(chars);
+        singleLine = Arrays.toString(chars);
+        shiftedPuzzleInput.add(singleLine);
+        System.out.println(singleLine);
+        System.out.println("results: " + results);
+      }
+
+      System.out.println("shifted:" + shiftedPuzzleInput);
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /*
+   * This method should calculate the weight of a single line, the weight is calculated by taking the sum of the
+   *  distance from each roundedRock to the end of the string
+   */
+  public static int calculateSingleLineWeight(char[] chars) {
+    int weight = 0;
+    for (int i = 0; i < chars.length; i++) {
+      if (chars[i] == roundedRock) {
+        weight += chars.length - i;
+        System.out.println("weight: " + weight);
+      }
+    }
+    return weight;
   }
 
   public static List<String> invertMatrix(List<String> input) {
@@ -62,63 +87,4 @@ public class Main {
     return inverted;
   }
 
-  public static int areEqualExceptOneChar(String str1, String str2) throws IOException {
-    if (str1.length() != str2.length()) {
-      throw new IOException("Strings must be of equal length");
-    }
-
-    int mismatchCount = 0;
-    for (int i = 0; i < str1.length(); i++) {
-      if (str1.charAt(i) != str2.charAt(i)) {
-        mismatchCount++;
-        if (mismatchCount > 1) {
-          return mismatchCount;
-        }
-      }
-    }
-
-    return mismatchCount;
-  }
-
-  public static int findHorizontalLine(List<String> puzzleInput) throws IOException {
-    int totalMismatches = 0;
-    for (int i = 0; i < puzzleInput.size(); i++) {
-      totalMismatches = 0;
-      if (i + 1 < puzzleInput.size()) {
-
-        totalMismatches += areEqualExceptOneChar(puzzleInput.get(i), puzzleInput.get(i + 1));
-        if (totalMismatches < 2) {
-          System.out.println("found identical rows at " + i + " and " + (i + 1));
-          System.out.println(puzzleInput.get(i));
-          System.out.println(puzzleInput.get(i + 1));
-          int step = 1;
-          boolean mismatch = false;
-          // two identical rows found, now move 'outwards' to see if we have a good reflection.
-//        System.out.println("i: " + i + " step: " + step + " puzzleInput.size(): " + puzzleInput.size());
-          while (i - step >= 0 && (i + 1 + step) < puzzleInput.size()) {
-            totalMismatches += areEqualExceptOneChar(puzzleInput.get(i - step), puzzleInput.get(i + 1 + step));
-            if (totalMismatches < 2) {
-//              puzzleInput.get(i - step).equals(puzzleInput.get(i + 1 + step))) {
-              System.out.println("found identical rows at " + (i - step) + " and " + (i + 1 + step));
-
-              System.out.println(puzzleInput.get(i - step));
-              System.out.println(puzzleInput.get(i + 1 + step));
-              // we are still good
-              step++;
-            } else {
-              System.out.println("mismatch in rows at " + (i - step) + " and " + (i + 1 + step));
-              System.out.println(puzzleInput.get(i - step));
-              System.out.println(puzzleInput.get(i + 1 + step));
-              mismatch = true;
-              break;
-            }
-          }
-          if (totalMismatches == 1) {
-            return (i + 1); // we have a reflection
-          }
-        }
-      }
-    }
-    return 0;
-  }
 }
