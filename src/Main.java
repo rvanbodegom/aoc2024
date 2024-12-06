@@ -42,6 +42,7 @@ public class Main {
       e.printStackTrace();
     }
   }
+
   public static List<String> invertMatrix(List<String> input) {
     int maxLength = input.stream().mapToInt(String::length).max().orElse(0);
     List<String> inverted = new ArrayList<>();
@@ -60,35 +61,61 @@ public class Main {
 
     return inverted;
   }
-  public static int findHorizontalLine(List<String> puzzleInput) {
-    int count = 0;
-    for (int i = 0; i < puzzleInput.size(); i++) {
-      if (i + 1 < puzzleInput.size() && puzzleInput.get(i).equals(puzzleInput.get(i + 1))) {
-        System.out.println("found identical rows at " + i + " and " + (i + 1));
-        System.out.println(puzzleInput.get(i));
-        System.out.println(puzzleInput.get(i + 1));
-        int step = 1;
-        boolean mismatch = false;
-        // two identical rows found, now move 'outwards' to see if we have a good reflection.
-        System.out.println("i: " + i + " step: " + step + " puzzleInput.size(): " + puzzleInput.size());
-        while (i - step >= 0 && (i + 1 + step) < puzzleInput.size()) {
-          if (puzzleInput.get(i - step).equals(puzzleInput.get(i + 1 + step))) {
-            System.out.println("found identical rows at " + (i - step) + " and " + (i + 1 + step));
 
-            System.out.println(puzzleInput.get(i-step));
-            System.out.println(puzzleInput.get(i + 1 + step));
-            // we are still good
-            step++;
-          } else {
-            System.out.println("mismatch in rows at " + (i - step) + " and " + (i + 1 + step));
-            System.out.println(puzzleInput.get(i - step));
-            System.out.println(puzzleInput.get(i + 1 + step));
-            mismatch = true;
-            break;
-          }
+  public static int areEqualExceptOneChar(String str1, String str2) throws IOException {
+    if (str1.length() != str2.length()) {
+      throw new IOException("Strings must be of equal length");
+    }
+
+    int mismatchCount = 0;
+    for (int i = 0; i < str1.length(); i++) {
+      if (str1.charAt(i) != str2.charAt(i)) {
+        mismatchCount++;
+        if (mismatchCount > 1) {
+          return mismatchCount;
         }
-        if (!mismatch) {
-          return (i + 1); // we have a reflection
+      }
+    }
+
+    return mismatchCount;
+  }
+
+  public static int findHorizontalLine(List<String> puzzleInput) throws IOException {
+    int totalMismatches = 0;
+    for (int i = 0; i < puzzleInput.size(); i++) {
+      totalMismatches = 0;
+      if (i + 1 < puzzleInput.size()) {
+
+        totalMismatches += areEqualExceptOneChar(puzzleInput.get(i), puzzleInput.get(i + 1));
+        if (totalMismatches < 2) {
+          System.out.println("found identical rows at " + i + " and " + (i + 1));
+          System.out.println(puzzleInput.get(i));
+          System.out.println(puzzleInput.get(i + 1));
+          int step = 1;
+          boolean mismatch = false;
+          // two identical rows found, now move 'outwards' to see if we have a good reflection.
+//        System.out.println("i: " + i + " step: " + step + " puzzleInput.size(): " + puzzleInput.size());
+          while (i - step >= 0 && (i + 1 + step) < puzzleInput.size()) {
+            totalMismatches += areEqualExceptOneChar(puzzleInput.get(i - step), puzzleInput.get(i + 1 + step));
+            if (totalMismatches < 2) {
+//              puzzleInput.get(i - step).equals(puzzleInput.get(i + 1 + step))) {
+              System.out.println("found identical rows at " + (i - step) + " and " + (i + 1 + step));
+
+              System.out.println(puzzleInput.get(i - step));
+              System.out.println(puzzleInput.get(i + 1 + step));
+              // we are still good
+              step++;
+            } else {
+              System.out.println("mismatch in rows at " + (i - step) + " and " + (i + 1 + step));
+              System.out.println(puzzleInput.get(i - step));
+              System.out.println(puzzleInput.get(i + 1 + step));
+              mismatch = true;
+              break;
+            }
+          }
+          if (totalMismatches == 1) {
+            return (i + 1); // we have a reflection
+          }
         }
       }
     }
