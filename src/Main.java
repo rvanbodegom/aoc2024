@@ -1,10 +1,8 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+
 
 public class Main {
   static char roundedRock = 'O';
@@ -12,6 +10,7 @@ public class Main {
   static char empty = '.';
   static long result = 0;
   static long nrOfRotations = 1000;
+
 
   public static void main(String[] args) {
     String filePath = "src/input.txt";
@@ -28,26 +27,42 @@ public class Main {
           System.out.println(fullPuzzleInput);
         }
       }
+      // boxnr, label, focalLength
+      List<Map><String, Integer>[] lenses = new LinkedHashMap<>();
       for (String step : fullPuzzleInput) {
         hashResult = 0;
-        char[] chars = step.toCharArray();
-        for (char c : chars) {
-          hashResult += (int) c;
-//          System.out.println("hashResult: " + hashResult);
+        String label;
+        if (step.contains("=")) {
+          label = step.split("=")[0];
+          for (char c : label.toCharArray()) {
+            hashResult += (int) c;
+          }
           hashResult *= 17;
-//          System.out.println("hashResult: " + hashResult);
           hashResult = hashResult % 256;
-//          System.out.println("hashResult: " + hashResult);
-
+          // add to box
+          lenses.put(hashResult, new Lens(label, Integer.parseInt(step.split("=")[1])));
+        } else { // "-"
+          hashResult = 0;
+          label = step.split("-")[0];
+          for (char c : label.toCharArray()) {
+            hashResult += (int) c;
+          }
+          hashResult *= 17;
+          hashResult = hashResult % 256;
+          if (lenses.containsKey(hashResult)) {
+            Lens tmp = lenses.get(hashResult); // get the lens
+            if (tmp.)
+            lenses.remove();
+          }
         }
-        System.out.println("Intermediate Result: " + step + ": " + hashResult);
-        result += hashResult;
+
       }
       System.out.println("Final Result: " + result);
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
+
 }
 
 
