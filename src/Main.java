@@ -15,57 +15,72 @@ public class Main {
 
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String line;
+      Map<Integer, List<Integer>> pageRules = new HashMap<>();
+      List<List<Integer>> updates = new ArrayList<>();
       int lineNo = 0;
-      List<List<Character>> input = new ArrayList<>();
+      boolean firstSection = true;
       while ((line = br.readLine()) != null) {
         if (!line.isEmpty()) {
-          input.add(line.chars().mapToObj(e -> (char) e).toList());
-          lineNo++;
+          if (firstSection) {
+            String[] parts = line.split("\\|");
+            List<Integer> tmp = pageRules.get(Integer.parseInt(parts[0]));
+            if (tmp == null) {
+              tmp = new ArrayList<>();
+            }
+            tmp.add(Integer.parseInt(parts[1]));
+            pageRules.put(Integer.parseInt(parts[0]), tmp);
+          } else {
+            // split the comma separated values into a list of integers
+            List<Integer> update = Arrays.stream(line.split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+            updates.add(update);
+
+          }
+
+        } else {
+          firstSection = false;
+          continue;
         }
       }
-      for (int i = 0; i < input.size(); i++) {
-        for (int j = 0; j < input.get(i).size(); j++) {
-          // find 2 occurences of the char 'M' with a distance of 2
-          if (input.get(i).get(j) == 'M') {
-            // find if there is an adjacent cell with the char 'M'
-            if (j + 2 < input.get(i).size() && input.get(i).get(j + 2) == 'M') { // check right
-              // find if there is an 'A' in between and above
-              if (i - 1 >= 0 && input.get(i - 1).get(j + 1) == 'A') { // above
-                if (i - 2 >= 0 && input.get(i - 2).get(j + 2) == 'S' && input.get(i - 2).get(j) == 'S') { // above
-                  System.out.println("Found a upward match at: " + i + " " + j + "/" + i + " " + (j + 2));
-                  result++;
-                }
-              }
-              // same for below
-              if (i + 1 < input.size() && input.get(i + 1).get(j + 1) == 'A') { // below
-                if (i + 2 < input.size() && input.get(i + 2).get(j + 2) == 'S' && input.get(i + 2).get(j) == 'S') { // below
-                  System.out.println("Found a downward match at: " + i + " " + j + "/" + i + " " + (j + 2));
-                  result++;
-                }
-              }
+      System.out.println("Page Rules: " + pageRules);
+      System.out.println("Updates: " + updates);
+      // for each update check if the pagerules apply
+      for (List<Integer> update : updates) {
+        boolean ruleApplies = true;
+        for (int i = 0; i < update.size() - 1; i++) {
+          Integer key = update.get(i);
+          System.out.println("Key: " + key);
+          for (int j = i + 1; j < update.size(); j++) {
+            if (pageRules.get(key) == null) {
+              System.out.println("Rule does not apply for update: " + update);
+//              System.out.println("=== Key: " + key + " does not exist in pageRules");
+              ruleApplies = false;
+              break;
             }
-            // same check but with the M below
-            if (i + 2 < input.size() && input.get(i + 2).get(j) == 'M') { // check down
-              // now check right
-              if (j + 1 < input.size() && input.get(i + 1).get(j + 1) == 'A') { // right
-                if (j + 2 < input.size() && input.get(i + 2).get(j + 2) == 'S' && input.get(i).get(j + 2) == 'S') { // right
-                  System.out.println("Found a rightward match at: " + i + " " + j + "/" + (i + 2) + " " + (j + 2));
-                  result++;
-                }
-              }
-              // now go left
-              if (j - 1 >= 0 && input.get(i + 1).get(j - 1) == 'A') { // left
-                if (j - 2 >= 0 && input.get(i + 2).get(j - 2) == 'S' && input.get(i).get(j - 2) == 'S') { // left
-                  System.out.println("Found a leftward match at: " + i + " " + j + "/" + (i + 2) + " " + (j - 2));
-                  result++;
-                }
-              }
+            if (!pageRules.get(key).contains(update.get(j))) {
+              System.out.println("Rule does not apply for update: " + update);
+              ruleApplies = false;
+              break;
             }
           }
-          //System.out.print(input.get(i).get(j));
+//
+//          List<Integer> rules = pageRules.get(i);
+//          if (rules != null) {
+//            if (!rules.contains(update.get(i))) {
+//              System.out.println("Rule does not apply for update: " + update);
+//              ruleApplies = false;
+//              break;
+//            }
+//          }
+        }
+        if (ruleApplies) {
+          // find the middle element of the update rules
+          int middle = update.get(update.size() / 2);
+          System.out.println("Middle: " + middle);
+          result+= middle;
         }
       }
-      // System.out.println("\n");
 
       System.out.println("Final Result: " + result);
 
