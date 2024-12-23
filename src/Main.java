@@ -43,11 +43,11 @@ public class Main {
 //      visitedPosition[positionRow][positionCol][0] = true;
       result++;
 
-      for (int firstIndex = 0; firstIndex < 1; firstIndex++) {
-        for (int secondIndex = 0; secondIndex < 2; secondIndex++) {
-//          for (int firstIndex = 0; firstIndex < grid.get(0).size(); firstIndex++) {
-//            for (int secondIndex = 0; secondIndex < grid.size(); secondIndex++) {
-          System.out.println("Position Row si: " + secondIndex + " Position Col fi: " + firstIndex);
+          for (int firstIndex = 0; firstIndex < grid.get(0).size(); firstIndex++) {
+
+          System.out.println("Starting at: " + firstIndex);
+            for (int secondIndex = 0; secondIndex < grid.size(); secondIndex++) {
+//          System.out.println("Position Row si: " + secondIndex + " Position Col fi: " + firstIndex);
           // set this field to 'X'
           if (grid.get(secondIndex).get(firstIndex) == '.' && !(secondIndex == 5 && firstIndex == 4)) {
             grid.get(secondIndex).set(firstIndex, '#');
@@ -55,6 +55,7 @@ public class Main {
               if (direction == 0) {
                 if (visitedPosition[positionRow][positionCol][direction]) {
                   nrOfPossibleLoops++;
+                  System.out.println("loop detected by adding block at: " + secondIndex + " " + firstIndex);
                   break;
                 }
                 // go up until # or top edge of grid
@@ -83,12 +84,14 @@ public class Main {
 //                if (grid.get(positionRow - 1).get(positionCol) == '#') {
 //                  direction = 1;
 //                }
-                System.out.println("END OF UP: Position Row: " + positionRow + " Position Col: " + positionCol +
-                    " current result: " + result + " secondIndex: " + secondIndex + " firstIndex: " + firstIndex + " nrOfPossibleLoops: " + nrOfPossibleLoops);
+//                System.out.println("END OF UP: Position Row: " + positionRow + " Position Col: " + positionCol +
+//                    " current result: " + result + " secondIndex: " + secondIndex + " firstIndex: " + firstIndex + " nrOfPossibleLoops: " + nrOfPossibleLoops);
               }
               if (direction == 1) {
                 if (visitedPosition[positionRow][positionCol][direction]) {
+
                   nrOfPossibleLoops++;
+                  System.out.println("loop detected by adding block at: " + secondIndex + " " + firstIndex);
                   break;
                 }
                 // go right until # or right edge of grid
@@ -113,11 +116,13 @@ public class Main {
                     break;
                   }
                 }
-                System.out.println("END OF RIGHT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+//                System.out.println("END OF RIGHT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
               }
               if (direction == 2) {
                 if (visitedPosition[positionRow][positionCol][direction]) {
+
                   nrOfPossibleLoops++;
+                  System.out.println("loop detected by adding block at: " + secondIndex + " " + firstIndex);
                   break;
                 }
                 // go down until # or bottom edge of grid
@@ -141,12 +146,14 @@ public class Main {
                     break;
                   }
                 }
-                System.out.println("END OF DOWN: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+//                System.out.println("END OF DOWN: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
               }
               if (direction == 3) {
 
                 if (visitedPosition[positionRow][positionCol][direction]) {
+
                   nrOfPossibleLoops++;
+                  System.out.println("loop detected by adding block at: " + secondIndex + " " + firstIndex);
                   break;
                 }
 
@@ -171,16 +178,16 @@ public class Main {
                     break;
                   }
                 }
-                System.out.println("END OF LEFT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+//                System.out.println("END OF LEFT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
               }
 
             } while (!endIsReached);
-            for (List<Character> row2 : grid) {
-              for (Character c : row2) {
-                System.out.print(c);
-              }
-              System.out.println();
-            }
+//            for (List<Character> row2 : grid) {
+//              for (Character c : row2) {
+//                System.out.print(c);
+//              }
+//              System.out.println();
+//            }
             endIsReached = false; // reset
             direction = 0; // reset
             grid.get(secondIndex).set(firstIndex, '.');
