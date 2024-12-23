@@ -9,106 +9,204 @@ import java.util.stream.Collectors;
 
 public class Main {
   static long result = 0;
+  static boolean[][][] visitedPosition = new boolean[1000][1000][4];
+  static long nrOfPossibleLoops = 0;
 
   public static void main(String[] args) {
     String filePath = "src/input.txt";
-
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String line;
-      Map<Integer, List<Integer>> pageRules = new HashMap<>();
-      List<List<Integer>> updates = new ArrayList<>();
-      List<List<Integer>> incorrectUpdates = new ArrayList<>();
-      int lineNo = 0;
-      boolean firstSection = true;
+      int positionRow = 0;
+      int positionCol = 0;
+      int startRow = 0;
+      int startCol = 0;
+      int row = 0;
+      List<List<Character>> grid = new ArrayList<>();
+      List<List<Character>> startGrid = new ArrayList<>();
       while ((line = br.readLine()) != null) {
         if (!line.isEmpty()) {
-          if (firstSection) {
-            String[] parts = line.split("\\|");
-            List<Integer> tmp = pageRules.get(Integer.parseInt(parts[0]));
-            if (tmp == null) {
-              tmp = new ArrayList<>();
-            }
-            tmp.add(Integer.parseInt(parts[1]));
-            pageRules.put(Integer.parseInt(parts[0]), tmp);
-          } else {
-            // split the comma separated values into a list of integers
-            List<Integer> update = Arrays.stream(line.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-            updates.add(update);
-
+          grid.add(line.chars().mapToObj(e -> (char) e).collect(Collectors.toList()));
+          if (line.contains("^")) {
+            positionRow = row;
+            positionCol = line.indexOf("^");
+            startRow = row;
+            startCol = line.indexOf("^");
           }
-
-        } else {
-          firstSection = false;
-          continue;
+          row++;
         }
       }
-      for (Map.Entry<Integer, List<Integer>> entry : pageRules.entrySet()) {
-        List<Integer> tmp = entry.getValue();
-        Collections.sort(tmp);
-        System.out.println("Key: " + entry.getKey() + " Value: " + tmp);
-      }
+      startGrid = grid.stream().map(ArrayList::new).collect(Collectors.toList());
+      int direction = 0; // 0 = up, 1 = right, 2 = down, 3 = left
+      boolean endIsReached = false;
+      // first position should always become 'X'
+//      grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+//      visitedPosition[positionRow][positionCol][0] = true;
+      result++;
 
-      //System.out.println("Page Rules: " + pageRules.sort());
-//      System.out.println("Updates: " + updates);
-      // for each update check if the pagerules apply
-      boolean reset = true;
-      boolean identicalResult = true;
-      for (List<Integer> update : updates) {
-        boolean ruleApplies = true;
-        for (int i = 0; i < update.size() - 1; i++) {
-          if (reset && !identicalResult) {
-            i = 0;
-            reset = false;
-            identicalResult = true;
-          }
-          Integer key = update.get(i);
-//          System.out.println("Key: " + key + " with I: " + i);
-          for (int j = i + 1; j < update.size(); j++) {
-            if (pageRules.get(key) == null) {
-//              System.out.println("Rule does not apply for update: " + update);
-              System.out.println("=== Key: " + key + " does not exist in pageRules");
-              // key has to be the last element in the update
-              update.remove(key);
-              update.add(key);
+      for (int firstIndex = 0; firstIndex < 1; firstIndex++) {
+        for (int secondIndex = 0; secondIndex < 2; secondIndex++) {
+//          for (int firstIndex = 0; firstIndex < grid.get(0).size(); firstIndex++) {
+//            for (int secondIndex = 0; secondIndex < grid.size(); secondIndex++) {
+          System.out.println("Position Row si: " + secondIndex + " Position Col fi: " + firstIndex);
+          // set this field to 'X'
+          if (grid.get(secondIndex).get(firstIndex) == '.' && !(secondIndex == 5 && firstIndex == 4)) {
+            grid.get(secondIndex).set(firstIndex, '#');
+            do {
+              if (direction == 0) {
+                if (visitedPosition[positionRow][positionCol][direction]) {
+                  nrOfPossibleLoops++;
+                  break;
+                }
+                // go up until # or top edge of grid
+                while (positionRow > 0) { // can go up
+                  // && grid.get(positionRow - 1).get(positionCol) != '#'
+                  if (grid.get(positionRow).get(positionCol) == '.') {
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][0] = true;
+                    result++;
+                  }
+                  positionRow--;
+                  // result++;
+                  if (positionRow == 0) {
+                    endIsReached = true;
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][0] = true;
+                    result++;
+                    break;
+                  }
+                  if (grid.get(positionRow - 1).get(positionCol) == '#') {
+                    direction = 1;
+                    break;
+                  }
+                }
 
-              ruleApplies = false;
-              identicalResult = false;
-              break;
+//                if (grid.get(positionRow - 1).get(positionCol) == '#') {
+//                  direction = 1;
+//                }
+                System.out.println("END OF UP: Position Row: " + positionRow + " Position Col: " + positionCol +
+                    " current result: " + result + " secondIndex: " + secondIndex + " firstIndex: " + firstIndex + " nrOfPossibleLoops: " + nrOfPossibleLoops);
+              }
+              if (direction == 1) {
+                if (visitedPosition[positionRow][positionCol][direction]) {
+                  nrOfPossibleLoops++;
+                  break;
+                }
+                // go right until # or right edge of grid
+                while (positionCol < grid.get(0).size() - 1 ) { // can go right
+                  //&& grid.get(positionRow).get(positionCol + 1) != '#'
+                  if (grid.get(positionRow).get(positionCol) == '.') {
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][1] = true;
+                    result++;
+                  }
+                  positionCol++;
+                  // result++;
+                  if (positionCol == grid.get(0).size() - 1) {
+                    endIsReached = true;
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][1] = true;
+                    result++;
+                    break;
+                  }
+                  if (grid.get(positionRow).get(positionCol + 1) == '#') {
+                    direction = 2;
+                    break;
+                  }
+                }
+                System.out.println("END OF RIGHT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+              }
+              if (direction == 2) {
+                if (visitedPosition[positionRow][positionCol][direction]) {
+                  nrOfPossibleLoops++;
+                  break;
+                }
+                // go down until # or bottom edge of grid
+                while (positionRow < grid.size() - 1) { // && grid.get(positionRow + 1).get(positionCol) != '#') { // can go down
+                  if (grid.get(positionRow).get(positionCol) == '.') {
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][2] = true;
+                    result++;
+                  }
+                  positionRow++;
+                  // result++;
+                  if (positionRow == grid.size() - 1) {
+                    endIsReached = true;
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][2] = true;
+                    result++;
+                    break;
+                  }
+                  if (grid.get(positionRow + 1).get(positionCol) == '#') {
+                    direction = 3;
+                    break;
+                  }
+                }
+                System.out.println("END OF DOWN: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+              }
+              if (direction == 3) {
+
+                if (visitedPosition[positionRow][positionCol][direction]) {
+                  nrOfPossibleLoops++;
+                  break;
+                }
+
+                // go left until # or left edge of grid
+                while (positionCol > 0) { // && grid.get(positionRow).get(positionCol - 1) != '#') { // can go left
+                  if (grid.get(positionRow).get(positionCol) == '.') {
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][3] = true;
+                    result++;
+                  }
+                  positionCol--;
+                  // result++;
+                  if (positionCol == 0) {
+                    endIsReached = true;
+                    grid.get(positionRow).set(positionCol, 'X'); // mark as visited
+                    visitedPosition[positionRow][positionCol][3] = true;
+                    result++;
+                    break;
+                  }
+                  if (grid.get(positionRow).get(positionCol - 1) == '#') {
+                    direction = 0;
+                    break;
+                  }
+                }
+                System.out.println("END OF LEFT: Position Row: " + positionRow + " Position Col: " + positionCol + " current result: " + result);
+              }
+
+            } while (!endIsReached);
+            for (List<Character> row2 : grid) {
+              for (Character c : row2) {
+                System.out.print(c);
+              }
+              System.out.println();
             }
-            if (!pageRules.get(key).contains(update.get(j))) {
-//              System.out.println("Original Rule does not apply for update: " + update + " key  " + key + " and " + update.get(j));
-              // swap positions
-              int tmp = update.get(i);
-              update.set(i, update.get(j));
-              update.set(j, tmp);
+            endIsReached = false; // reset
+            direction = 0; // reset
+            grid.get(secondIndex).set(firstIndex, '.');
+            positionRow = startRow;
+            positionCol = startCol;
+            visitedPosition = new boolean[1000][1000][4];
+            grid = startGrid.stream().map(ArrayList::new).collect(Collectors.toList());
 
-              ruleApplies = false;
-              identicalResult = false;
-              break;
-            } else {
-              //System.out.println("== Rule applies for update: " + update + " key  " + key + " and " + update.get(j));
-              reset = true;
-            }
+
           }
         }
-        if (!ruleApplies) {
-          incorrectUpdates.add(update);
-          System.out.println("Roel does not apply for update: " + update);
-
-        }
       }
-      //System.out.println("Incorrect Updates: " + incorrectUpdates);
-      for (List<Integer> update : incorrectUpdates) {
-        // set in the correct order
 
+      //positionRow != 0 || positionCol != 0 ||  positionCol != grid.get(0).size() - 1 || positionRow != grid.size() - 1);
 
-        int middle = update.get(update.size() / 2);
-        System.out.println("Middle: " + middle);
-        result += middle;
-      }
+//      for (List<Character> row2 : grid) {
+//        for (Character c : row2) {
+//          System.out.print(c);
+//        }
+//        System.out.println();
+////        System.out.println(row2);
+//      }
+      //System.out.println("Grid: " + grid);
+      System.out.println("FINAL Position Row: " + positionRow + " Position Col: " + positionCol);
       System.out.println("Final Result: " + result);
+      System.out.println("Nr of possible loops: " + nrOfPossibleLoops);
 
     } catch (
         IOException e) {
